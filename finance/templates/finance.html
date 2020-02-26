@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% load socialaccount %}
+{% providers_media_js %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block search_bar %}
+
+<form class="form-inline my-2 my-lg-0"  action="/finance" method="GET">
+    <input class="form-control mr-sm-2" name="stock" type="text" placeholder="Search Ticker">
+</form>
+
+{% endblock %}
+
+
+{% block content %}
+
+<style>
+    body{
+        background-color:#e4f0ef;
+    }
+</style>
+
+<script src="https://cdn.bokeh.org/bokeh/release/bokeh-1.4.0.min.js"></script>
+
+<div class="row" style="padding-top:50px;">
+
+    <div class="card col-lg-2 order-lg-3" style="background-color:#88dbd2">
+        <div class="card-header bg-transparent">
+            {% if user.is_authenticated %}
+                {% if user.socialaccount_set.all.0.get_avatar_url %}
+                    <img src="{{ user.socialaccount_set.all.0.get_avatar_url }}" width="125"
+                         class="mx-auto d-block rounded-circle shadow"/>
+                {% else %}
+                    <img class="mx-auto d-block rounded-circle shadow" src="{% static 'Blank_profile.png' %}"
+                         style="background-color:#e4f0ef" width="125">
+                {% endif %}
+                <h6 class="text-center pt-3">
+                    {{user.email}}
+                </h6>
+            {% else %}
+                <img src="{% static 'Blank_profile.png' %}" width="125" class="mx-auto d-block rounded-circle shadow"
+                            style="background-color:#e4f0ef">
+            {% endif %}
+        </div>
+        <div class="card-text pt-2">
+            <span class="d-flex">
+                <h4>Watchlist</h4>
+                {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'account_logout' %}" class="ml-auto">
+                        {% csrf_token %}
+                        {% if redirect_field_value %}
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+                        {% endif %}
+                        <p class="mb-0" data-toggle="tooltip" data-placement="bottom" title="Logout">
+                            <button class="btn btn-default mb-0" type="submit">
+                                <i class="fas fa-power-off mb-0" style="font-size: 17px;"></i>
+                            </button>
+                        </p>
+                    </form>
+                {% else %}
+                    <p class="mb-0 ml-auto" data-toggle="tooltip" data-placement="bottom" title="Login">
+                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#LoginModal">
+                            <i class="fas fa-sign-in-alt" style="font-size: 20px;"></i>
+                        </button>
+                    </p>
+                {% endif %}
+            </span>
+        </div>
+        <div>
+            {% for item in watchlist_list %}
+                <div class="card m-2 p-2" style="background-color:#e4f0ef">
+                    <div class="row">
+                        <form action="" method="GET" class="m-0 p-2 col-lg-8">
+                            <input name="stock" type="hidden" value={{item.ticker}}>
+                            <button class="btn btn-default w-100" style="background-color:#e4f0ef">
+                                {{item.ticker}}
+                            </button>
+                        </form>
+                        {% if user.is_authenticated %}
+                            <form method="POST"
+                                class="m-0 p-2 col-lg-4 d-inline"
+                                action="{% url 'watchlist_delete' item.id %}">
+                                {% csrf_token %}
+                                <button class="btn btn-default w-100" style="background-color:#e4f0ef">
+                                    <i class="fas fa-minus-circle text-danger" style="font-size:25px"></i>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-lg-8 order-lg-2 p-5">
+        <div class="row justify-content-end">
+            <h1 class="card-title text-center col-lg-4">{{ stock }}</h1>
+            {% if user.is_authenticated %}
+                <form action="" method="POST" class="col-lg-4 text-right">
+                    <input name="ticker" type="hidden" value={{stock}}>
+                    <input name="user" type="hidden" value={{user.id}}>
+                    {% csrf_token %}
+                    <button class="btn btn-default" style="background-color:#e4f0ef">
+                        <i class="fas fa-plus-circle" style="font-size:40; color:grey;"></i>
+                    </button>
+                </form>
+            {% else %}
+                <div class="col-lg-4 text-right">
+                    <button class="btn btn-default" style="background-color:#e4f0ef" data-toggle="modal"
+                            data-target="#LoginModal">
+                        <i class="fas fa-plus-circle" style="font-size:40; color:grey;"></i>
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        <div class="card">
+            <div class="card-header bg-transparent">
+                 <h5 class="text-center">52 Week Range: {{ range }}</h5>
+            </div>
+            <div class="card-body">
+                {{ the_div|safe }}
+                {{ the_script|safe }}
+            </div>
+        </div>
+        <div class="container" style="padding-top: 10px;">
+            <div class="row justify-content-center">
+                <div class="card m-3">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title text-center">Beta:</h5>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="text-center">{{ beta }}</h4>
+                        <p class="text-center">(5Y Monthly)</p>
+                    </div>
+                </div>
+                <div class="card m-3">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title text-center">Market Cap:</h5>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="text-center">$ {{ market_cap }}</h4>
+                    </div>
+                </div>
+                <div class="card m-3">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title text-center">Price:</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="text-center">Price: ${{ price }}</h6>
+                        <h6 class="text-center">Bid: ${{ bid }}</h6>
+                        <h6 class="text-center">Ask: ${{ ask }}</h6>
+                    </div>
+                </div>
+                <div class="card m-3">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title text-center">Target Price:</h5>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="text-center">${{ estimate }}</h4>
+                        <p class="text-center">(1 Year)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="padding-top:30px">
+            {% if news.entries %}
+                {% autoescape off %}
+                {% for entry in news.entries|slice:":10"  %}
+                    <div class="card m-4 p-0">
+                        <a href="{{entry.link}}" class="btn btn-defualt h-100 w-100">
+                            <div class="card-header bg-transparent">
+                                <h5 class="card-title">{{ entry.title }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">{{ entry.description }}</p>
+                                <p>Published: {{ entry.published }}</p>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+                {% endautoescape %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card col-lg-2 order-lg-1" style="background-color:#88dbd2">
+        <div class="card-header bg-transparent">
+            <h5 class="text-center">Top Movers</h5>
+        </div>
+        <div>
+            {% for index, mover in movers.iterrows %}
+                <div class="card p-2 m-2" style="background-color:#e4f0ef;">
+                    <div class="row">
+                        <form action="" method="GET" class="m-0 p-2 col-lg-9">
+                            <input name="stock" type="hidden" value={{mover.Symbol}}>
+                            <button class="btn btn-default" style="width:100%; background-color:#e4f0ef;">
+                                {{mover.Symbol}}
+                                {% if mover.Change >= 0 %}
+                                    <b class="badge badge-primary badge-pill">{{mover.Change}}%</b>
+                                {% else %}
+                                    <b class="badge badge-danger badge-pill">{{mover.Change}}%</b>
+                                {% endif %}
+                            </button>
+                        </form>
+                        {% if user.is_authenticated %}
+                            <form action="" method="POST" class="m-0 p-2 col-lg-3 d-inline">
+                                <input name="ticker" type="hidden" value={{mover.Symbol}}>
+                                <input name="user" type="hidden" value={{user.id}}>
+                                {% csrf_token %}
+                                <button class="btn btn-default w-100" style="background-color:#e4f0ef">
+                                    <i class="fas fa-plus-circle" style="font-size:20; color:grey;"></i>
+                                </button>
+                            </form>
+                        {% else %}
+                            <div class="m-0 p-2 col-lg-3 d-inline">
+                                <button class="btn btn-default w-100" style="background-color:#e4f0ef"
+                                        data-toggle="modal" data-target="#LoginModal">
+                                    <i class="fas fa-plus-circle" style="font-size:20; color:grey;"></i>
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="LoginModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog cascading-modal" role="document">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100">Sign In / Sign Up</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-toggle="tab" href="#login" role="tab">
+                        <i class="fas fa-user mr-1"></i>Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-toggle="tab" href="#signup" role="tab">
+                        <i class="fas fa-user-plus mr-1"></i>Register
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade in show active" id="login" role="tabpanel">
+                    <div class="modal-body">
+                        <a href="{% provider_login_url 'google'%}?next={{request.path}}"
+                           class="btn btn-danger btn-block btn-lg">
+                            <i class="fab fa-google"></i>Sign in with <b>Google</b>
+                        </a>
+                        <div class="d-flex my-2">
+                            <hr class="my-auto flex-grow-1">
+                                <i class="px-4">or</i>
+                            <hr class="my-auto flex-grow-1">
+                        </div>
+                        <form method="post" action="{% url 'account_login' %}?next={{request.path}}" id="login_form">
+                            {% csrf_token %}
+                            {{ login_form.login|as_crispy_field }}
+                            {{ login_form.password|as_crispy_field }}
+                            <div class="row justify-content-center">
+                                <div class="col-lg-4">
+                                    {{ login_form.remember|as_crispy_field }}
+                                </div>
+                                <div class="col-lg-4 text-center">
+                                    <input type="submit" class="btn btn-info" value="Log In">
+                                </div>
+                                <div class="col-lg-4">
+                                    <a href="{% url 'account_reset_password' %}" class="blue-text">
+                                        Forgot Password?
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="signup" role="tabpanel">
+                    <div class="modal-body">
+                        <a href="{% provider_login_url 'google' %}?next={{request.path}}"
+                           class="btn btn-danger btn-block btn-lg">
+                            <i class="fab fa-google"></i>Sign Up with <b>Google</b>
+                        </a>
+                        <div class="d-flex my-2">
+                            <hr class="my-auto flex-grow-1">
+                                <i class="px-4">or</i>
+                            <hr class="my-auto flex-grow-1">
+                        </div>
+                        <form method="post" action="{% url 'account_signup' %}?next={{request.path}}" id="signup_form">
+                            {% csrf_token %}
+                            {{ signup_form.email|as_crispy_field }}
+                            <div class="row justify-content-center">
+                                <div class="col-lg-6">
+                                    {{ signup_form.password1|as_crispy_field }}
+                                </div>
+                                <div class="col-lg-6">
+                                    {{ signup_form.password2|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <input type="submit" class="btn btn-info w-75" value="Sign Up">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

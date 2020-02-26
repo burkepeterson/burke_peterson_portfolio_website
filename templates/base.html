@@ -1,0 +1,89 @@
+  {% load static %}
+
+  <head>
+      <title>Burke Peterson</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+            integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+      <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+              integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+              crossorigin="anonymous"></script>
+      <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+              integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+              crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+              integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+              crossorigin="anonymous"></script>
+      <script src="https://kit.fontawesome.com/4ed505052d.js" crossorigin="anonymous"></script>
+      <link rel="stylesheet" href="{% static 'style.css' %}">
+      <script src="{% static 'track_location.js' %}"></script>
+      <script src="{% static 'tooltip.js' %}"></script>
+  </head>
+
+<body data-spy="scroll" data-target="" data-offset="100">
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark fixed-top">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nav-content"
+                aria-controls="nav-content" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <a class="navbar-brand" href="https://www.burkepeterson.com/">
+            Burke Peterson
+        </a>
+        <div class="collapse navbar-collapse" id="nav-content">
+            <ul class="navbar-nav  mr-auto">
+                <li class="nav-item scroll">
+                    <a class="nav-link" href="/#About" data-target="#About">
+                        About
+                    </a>
+                </li>
+                <li class="nav-item scroll">
+                    <a class="nav-link" href="/#Experience" data-target="#Experience">
+                        Experience
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#Education" data-target="#Education">
+                        Education
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="Preview" href="/#Portfolio" data-target="#Portfolio"
+                       role="button" aria-haspopup="true" aria-expanded="false">
+                        Portfolio
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="Preview">
+                        <a class="dropdown-item" href="/finance/">
+                            Stock Watchlist
+                        </a>
+                        <a class="dropdown-item" href="/employee/">
+                            Employee Management
+                        </a>
+                    </div>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    {% block search_bar %}
+                    {% endblock %}
+                </li>
+                <li class="nav-item">
+                    <a class="fab fas fa-file-alt" style="font-size:30" href="{% static 'Burke_Peterson_Resume.pdf' %}">
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="fab fa-github-square fa-2x" href="https://github.com/burkepeterson/burke_peterson_portfolio_website">
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="fab fa-linkedin fa-2x" href="https://www.linkedin.com/in/burke-peterson/">
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    {% block body %}
+        {% block content %}
+        {% endblock content %}
+    {% endblock body %}
+</body>

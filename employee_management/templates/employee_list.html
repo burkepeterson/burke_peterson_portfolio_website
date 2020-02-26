@@ -1,0 +1,46 @@
+{% extends "employee_base.html" %}
+
+{% block employee_content %}
+
+<table class="table table-borderless">
+    <thead class="border-bottom font-weight-bold">
+        <tr>
+            <td>First Name</td>
+            <td>Last Name</td>
+            <td>Phone Number</td>
+            <td>Email</td>
+            <td>Employee ID</td>
+            <td>Position</td>
+            <td>Manager</td>
+            <td><a href="{% url 'employee_form' %}" class="btn btn-outline-success">
+                <i class="fas fa-plus"></i> Add New
+            </a></td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for employee in employee_list %}
+            <tr>
+                <td>{{employee.first_name}}</td>
+                <td>{{employee.last_name}}</td>
+                <td>{{employee.phone_number}}</td>
+                <td>{{employee.email_address}}</td>
+                <td>{{employee.emp_code}}</td>
+                <td>{{employee.position}}</td>
+                <td>{{employee.manager_name}}</td>
+                <td>
+                    <a href="{% url 'employee_form_update' employee.id%}" class="btn text-secondary px-0">
+                        <i class="far fa-edit" style="font-size:25px"></i>
+                    </a>
+                    <form action="{% url 'employee_delete' employee.id %}" class="d-inline" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class='btn'>
+                            <i class="fas fa-user-minus text-danger" style="font-size:25px"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
