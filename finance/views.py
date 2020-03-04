@@ -86,6 +86,11 @@ def watchlist_delete(request, item_id):
     watchlist_item.delete()
     return redirect(request.META.get("HTTP_REFERER", "/finance/"))
 
+def news_feed(stock):
+    url = ("https://feeds.finance.yahoo.com/rss/2.0/headline?s=" + stock + "&region=US&lang=en-US")
+    news = feedparser.parse(url)
+    return news
+
 
 def finance_website(request):
     if request.method == "GET":
@@ -96,8 +101,7 @@ def finance_website(request):
 
         movers = get_stock_movers(5)
         watchlist_list = Watchlist.objects.filter(user=request.user.id)
-        url = ("https://feeds.finance.yahoo.com/rss/2.0/headline?s=" + stock + "&region=US&lang=en-US")
-        feed = feedparser.parse(url)
+        feed = news_feed(stock)
         login_form = LoginForm()
         signup_form = SignupForm()
 

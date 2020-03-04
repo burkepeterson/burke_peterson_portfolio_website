@@ -181,7 +181,8 @@
                                 <h5 class="card-title">{{ entry.title }}</h5>
                             </div>
                             <div class="card-body">
-                                <p class="card-text">{{ entry.description }}</p>
+                                <p class="card-text">{{ entry.description| slice:":1000" }}</p>
+                                <p class="card-text">...</p>
                                 <p>Published: {{ entry.published }}</p>
                             </div>
                         </a>
