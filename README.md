@@ -36,6 +36,12 @@ This site allows users to manage employee contact information. They are able to 
 - Uses a form to collect employee information
 - SQLite DB to store employees
 - Manager selection can only be an employee who is a manager
+- FullCalendar integration to track when employees are scheduled work
+    - Click to create events
+    - Drag events off the calendar to delete
+    - Click on event to change assigned employee
+    - Background color is employee position specific
+    - Validate request before creating or editing event
 </i>
 
 ![](static/employee_management.gif)
@@ -50,6 +56,7 @@ This site allows users to manage employee contact information. They are able to 
 - [Google OAuth API](https://developers.google.com/identity/protocols/OAuth2)
 - [Bokeh](https://bokeh.org/)
 - [SQLite](https://sqlite.org/index.html)
+- [FullCalendar](https://fullcalendar.io/)
 
 [Back To The Top](#read-me-template)
 

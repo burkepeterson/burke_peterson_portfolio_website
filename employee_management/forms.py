@@ -1,5 +1,5 @@
 from django import forms
-from .models import Employee
+from .models import Employee, Calendar
 from django.core.validators import RegexValidator
 
 
@@ -22,7 +22,6 @@ class EmployeeForm(forms.ModelForm):
         super(EmployeeForm, self).__init__(*args, **kwargs)
         self.fields['position'].empty_label = 'Select'
         self.fields['manager_name'].empty_label = 'Select'
-        self.fields['emp_code'].required = False
         self.fields['manager_name'].required = False
 
     def clean_phone_number(self):
@@ -31,3 +30,9 @@ class EmployeeForm(forms.ModelForm):
         if validator(data):
             raise forms.ValidationError("Incorrect format")
         return data
+
+
+class CalenderEventForm(forms.ModelForm):
+    class Meta:
+        model = Calendar
+        fields = ('title', 'start', 'end', 'allDay', 'employee')

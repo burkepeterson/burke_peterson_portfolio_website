@@ -1,0 +1,252 @@
+{% extends "employee_base.html" %}
+
+{% block title %}
+Employee Calendar
+{% endblock %}
+
+{% load static %}
+
+{% block employee_content %}
+<link href="{% static '/packages/core/main.css' %}" rel='stylesheet' />
+<link href="{% static '/packages/daygrid/main.css' %}" rel='stylesheet' />
+<link href="{% static '/packages/timegrid/main.css' %}" rel='stylesheet' />
+<link href="{% static '/packages/bootstrap/main.css' %}" rel='stylesheet' />
+<link href="{% static '/packages/select2/css/select2.min.css' %}" rel='stylesheet' />
+<script src="{% static '/packages/core/main.js' %}"></script>
+<script src="{% static '/packages/interaction/main.js' %}"></script>
+<script src="{% static '/packages/daygrid/main.js' %}"></script>
+<script src="{% static '/packages/timegrid/main.js' %}"></script>
+<script src="{% static '/packages/bootstrap/main.min.js' %}"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="{% static '/packages/select2/js/select2.min.js' %}"></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.min.js'></script>
+<style>
+    .fc-day-grid-event > .fc-content {
+        white-space: normal;
+    }
+    .fc-view-container{
+        background-color: #a1e1ff;
+        }
+    .fc-today {
+        background: #a0aef2 !important;
+        font-weight: bold;
+        }
+    .fc .fc-row .fc-content-skeleton td{
+        border-color: #0066ff;
+        }
+    h2 {
+        font-weight:bold;
+        }
+    .fc th, .fc td{
+        border-width: 2px;
+        border-color: #0066ff;
+        }
+    .btn-primary{
+        padding: 3px;
+        }
+</style>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var url_string = window.location.href;
+    var url = new URL(url_string);
+    var gridValue = url.searchParams.get("grid");
+    var selValue = url.searchParams.get("emp");
+    if (!gridValue){
+        var view = 'dayGridMonth';
+    } else {
+        var view = gridValue;
+    }
+    var employeeIdList = [{% for employee in employees %}'{{employee.id}}',{% endfor %}''];
+    if (!selValue || selValue == null || !(selValue in employeeIdList)){
+        var editableCalendar = false;
+    } else {
+        var editableCalendar = true;
+    }
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        plugins: ['bootstrap', 'interaction', 'dayGrid', 'timeGrid'],
+        header: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        themeSystem: 'bootstrap',
+        dragRevertDuration: 0,
+        defaultView: view,
+        themeSystem: 'bootstrap',
+        allDaySlot: true,
+        nowIndicator: true,
+        navLinks: true,
+        selectable: true,
+        selectMirror: true,
+        selectHelper:true,
+        editable: true,
+        eventLimit: true,
+        select: function(info) {
+            if (editableCalendar) {
+                var title = prompt('Event Title:');
+                if (title) {
+                    calendar.addEvent({
+                        title: title,
+                        start: info.start,
+                        end: info.end,
+                        allDay: info.allDay,
+                        renderEvent: false
+                    })
+                    var request = new XMLHttpRequest();
+                    request.open('POST', '', true);
+                    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;");
+                    request.send("csrfmiddlewaretoken={{ csrf_token }}&title=" + title + "&start=" +
+                                 info.start.toISOString() + "&end=" + info.end.toISOString() + "&allDay=" + info.allDay
+                                 + "&employee=" + selValue);
+                    var gridView = calendar.view.type;
+                    location.replace("http://" + location.host + "/employee/calendar/?emp=" + selValue + "&grid=" +
+                                     gridView);
+                }
+                calendar.unselect()
+            } else {
+                alert("Can't add an event when no employee is selected");
+            }
+        },
+        eventResize: function(info) {
+            var request = new XMLHttpRequest();
+            request.open('POST', '', true);
+            request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;");
+            request.send("csrfmiddlewaretoken={{ csrf_token }}&title=" + info.event.title + "&start=" +
+                          info.event.start.toISOString() + "&end=" + info.event.end.toISOString() + "&allDay=" +
+                          info.event.allDay + "&item_id=" + info.event.id);
+        },
+        eventDrop: function(info) {
+            if(info.event.end == null){
+                var startDate = new Date(info.event.start);
+                var hour = 60 * 60 * 1 * 1000;
+                if(info.event.allDay == true){
+                    var endDate = new Date(startDate.getTime() + (24 * hour));
+                    info.event.setEnd(endDate);
+                }else{
+                    var endDate = new Date(startDate.getTime() + (hour));
+                    info.event.setEnd(endDate);
+                }
+            }
+            var request = new XMLHttpRequest();
+            request.open('POST', '', true);
+            request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;");
+            request.send("csrfmiddlewaretoken={{ csrf_token }}&title=" + info.event.title + "&start=" +
+                         info.event.start.toISOString() + "&end=" + info.event.end.toISOString() + "&allDay=" +
+                         info.event.allDay + "&item_id=" + info.event.id);
+        },
+        eventClick: function(info){
+            if (editableCalendar) {
+                var request = new XMLHttpRequest();
+                request.open('POST', '', true);
+                request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;");
+                request.send("csrfmiddlewaretoken={{ csrf_token }}&title=" + info.event.title + "&start=" +
+                             info.event.start.toISOString() + "&end=" + info.event.end.toISOString() + "&allDay=" +
+                             info.event.allDay + "&item_id=" + info.event.id + "&employee=" + selValue);
+                var gridView = calendar.view.type;
+                location.replace("http://" + location.host + "/employee/calendar/?emp=" + selValue + "&grid=" +
+                                 gridView);
+            } else {
+                alert("Can't edit an event when no employee is selected");
+            }
+        },
+        eventDragStop: function(info) {
+            let trashEl = document.getElementById('calendar');
+            let x1 = trashEl.offsetLeft;
+            let x2 = trashEl.offsetLeft + trashEl.offsetWidth;
+            let y1 = trashEl.offsetTop;
+            let y2 = trashEl.offsetTop + trashEl.offsetHeight;
+            if (info.jsEvent.pageX <= x1 || info.jsEvent.pageX >= x2 || info.jsEvent.pageY <= y1 ||
+                info.jsEvent.pageY >= y2) {
+                var request = new XMLHttpRequest();
+                request.open('GET', "delete/" + info.event.id + "/", true);
+                request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;");
+                request.send("csrfmiddlewaretoken={{ csrf_token }}");
+                info.event.remove();
+            }
+        },
+        events: [
+            {% for event in events_list %}
+                {
+                    id: '{{event.id}}',
+                    title: '{{event.title}}',
+                    start: '{{event.start}}',
+                    end: '{{event.end}}',
+                    allDay: {{event.allDay|lower}},
+                    backgroundColor: '{{event.employee.position.color}}',
+                    editable: editableCalendar,
+                    description: '{{event.employee.first_name}} {{event.employee.last_name}}',
+                    renderEvent: true
+                },
+            {% endfor %}
+        ],
+        eventRender: function (info) {
+            if(info.event.extendedProps.renderEvent == true){
+                $(info.el).tooltip({ title: info.event.extendedProps.description});
+            }
+        }
+    });
+    calendar.render();
+});
+
+
+$(document).ready(function() {
+    var url_string = window.location.href;
+    var url = new URL(url_string);
+    selValue = url.searchParams.get("emp");
+    var emp = [
+        {
+            text: 'Choose an employee',
+            id: ''
+        }
+        {% for employee in employees %},
+            {
+                text: '{{employee}}',
+                id: '{{employee.id}}',
+                selected: selValue == {{employee.id}}
+            }
+        {% endfor %}
+    ];
+    $("#employee").select2({
+      data: emp
+    });
+});
+</script>
+
+<div class="row">
+    <div class="col-lg-3">
+        <a href="{% url 'employee_list' %}" class="btn btn-outline-success">
+            <i class="fas fa-list"></i> See Employee Contact Information</a>
+        <br />
+        <br />
+        <form action="" method="get" id="emp_form" class="form-inline">
+            <label for="employee">Employee:&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <select id="employee" name="emp" style="width:200px;" form="emp_form" onchange="this.form.submit()">
+            </select>
+        </form>
+        <br />
+        <h5>Some Helpful Tips</h5>
+        <ul>
+            <li>
+                <b>Must select an employee to edit any event</b>
+            </li>
+            <li>
+                <p>To delete an event drag it off of the calendar</p>
+            </li>
+            <li>
+                <p>To change the employee assigned, first select the employee you want to assign to and then click on the
+                    event that you want to change</p>
+            </li>
+            <li>
+                <p>Colors are employee position specific</p>
+            </li>
+            <li>
+                <p>Hover over event to see assigned employee</p>
+            </li>
+        </ul>
+    </div>
+    <div id='calendar' class="col-lg-9"></div>
+</div>
+{% endblock %}
