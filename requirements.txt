@@ -4,7 +4,7 @@ feedparser==5.2.1
 yahoo_fin==0.8.4
 django-allauth==0.41.0
 django-crispy-forms==1.8.1
-lxml==4.5.0
+lxml==4.6.3
 requests-html==0.10.0
 pandas==1.0.1
 django_environ==0.4.5
