@@ -1,4 +1,4 @@
-Django==3.0.7
+Django==3.0.14
 bokeh==1.4.0
 feedparser==5.2.1
 yahoo_fin==0.8.4
